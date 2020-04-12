@@ -1,9 +1,8 @@
-use x86_64::VirtAddr;
-use x86_64::structures::tss::TaskStateSegment;
-use x86_64::structures::gdt::{GlobalDescriptorTable, Descriptor};
-use x86_64::structures::gdt::SegmentSelector;
 use lazy_static::lazy_static;
-
+use x86_64::structures::gdt::SegmentSelector;
+use x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable};
+use x86_64::structures::tss::TaskStateSegment;
+use x86_64::VirtAddr;
 
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
@@ -13,7 +12,7 @@ lazy_static! {
         tss.interrupt_stack_table[DOUBLE_FAULT_IST_INDEX as usize] = {
             const STATCK_SIZE: usize = 4096;
             static mut STACK: [u8; STATCK_SIZE] = [0; STATCK_SIZE];
-            let stack_start = VirtAddr::from_ptr(unsafe{ &STACK});
+            let stack_start = VirtAddr::from_ptr(unsafe { &STACK });
             let stack_end = stack_start + STATCK_SIZE;
             stack_end
         };
@@ -26,7 +25,13 @@ lazy_static! {
         let mut gdt = GlobalDescriptorTable::new();
         let code_selector = gdt.add_entry(Descriptor::kernel_code_segment());
         let tss_selector = gdt.add_entry(Descriptor::tss_segment(&TSS));
-        (gdt, Selectors{code_selector, tss_selector})
+        (
+            gdt,
+            Selectors {
+                code_selector,
+                tss_selector,
+            },
+        )
     };
 }
 
@@ -44,4 +49,3 @@ pub fn init() {
         load_tss(GDT.1.tss_selector);
     }
 }
-

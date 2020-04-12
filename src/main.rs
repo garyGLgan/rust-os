@@ -12,26 +12,20 @@ pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
 
     ggos::init();
-    fn stack_overflow() {
-        stack_overflow();
-    }
-
-    stack_overflow();
 
     #[cfg(test)]
     test_main();
 
     println!("It did not crash!");
-    loop{}
+    ggos::hlt_loop();
 }
 
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop{}
+    ggos::hlt_loop();
 }
-
 
 #[cfg(test)]
 #[panic_handler]
