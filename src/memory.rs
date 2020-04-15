@@ -1,3 +1,4 @@
+use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
 use x86_64::{
     structures::paging::{
         FrameAllocator, Mapper, OffsetPageTable, Page, PageTable, PageTableFlags, PhysFrame,
@@ -44,5 +45,34 @@ pub struct EmptyFrameAllocator;
 unsafe impl FrameAllocator<Size4KiB> for EmptyFrameAllocator {
     fn allocate_frame(&mut self) -> Option<UnusedPhysFrame<Size4KiB>> {
         None
+    }
+}
+
+pub struct BoolInfoFrameAllocator {
+    memory_map: &'static MemoryMap,
+    next: usize,
+}
+
+unsafe impl FrameAllocator<Size4KiB> for BoolInfoFrameAllocator {
+    unsafe fn init(memory_map: &'static MemoryMap) -> Self {
+        BoolInfoFrameAllocator {
+            memory_map,
+            next: 0,
+        }
+    }
+
+    fn usable_frames(&self) -> impl Iterator<Item = UnusedPhysFrame> {
+        let regions = self.memory_map.iter();
+        let usable_regions = regions.filter(|r| r.region_type == MemoryRegionType::Usable);
+        let addr_ranges = usable_regions.map(|r| r.range.start_addr()..r.range.end_addr());
+        let frame_addresses = addr_ranges.flat_map(|r| r.step_ty(4096));
+        let frames = frame_addresses.map(|addr| PhysFrame::containing_address(PhysAddr::new(addr)));
+        frames.map(|f| unsafe { UnusedPhysFrame::new(f) });
+    }
+
+    fn allocte_frame(&mut self) -> Option<UnusedPhysFrame> {
+        let frame = self.usable_frames().nth(self.next);
+        self.next += 1;
+        frame
     }
 }
