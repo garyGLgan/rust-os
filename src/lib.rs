@@ -10,12 +10,12 @@ extern crate alloc;
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 
+pub mod allocator;
 pub mod gdt;
 pub mod interrupts;
 pub mod memory;
 pub mod serial;
 pub mod vga_buffer;
-pub mod allocator;
 
 #[cfg(test)]
 entry_point!(test_kernel_main);
@@ -73,7 +73,7 @@ pub fn init() {
 fn test_kernel_main(boot_info: &'static BootInfo) -> ! {
     init();
     test_main();
-    ggos::hlt_loop();
+    hlt_loop();
 }
 
 #[cfg(test)]

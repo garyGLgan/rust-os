@@ -71,7 +71,7 @@ impl BoolInfoFrameAllocator {
     }
 }
 
-unsafe impl FrameAllocator<Size4KiB> for BoolInfoFrameAllocator {   
+unsafe impl FrameAllocator<Size4KiB> for BoolInfoFrameAllocator {
     fn allocate_frame(&mut self) -> Option<UnusedPhysFrame> {
         let frame = self.usable_frames().nth(self.next);
         self.next += 1;
