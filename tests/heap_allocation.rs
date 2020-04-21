@@ -59,10 +59,22 @@ fn large_vec() {
 
 #[test_case]
 fn many_boxes() {
-    serial_println!("many_boxes..");
+    serial_print!("many_boxes..");
     for i in 0..HEAP_SIZE {
         let x = Box::new(i);
         assert_eq!(*x, i);
     }
-    serial_print!("[Ok]");
+    serial_println!("[Ok]");
+}
+
+#[test_case]
+fn many_boxes_long_lived() {
+    serial_print!("many_boxes_long_lived...");
+    let x = Box::new(1);
+    for i in 0..HEAP_SIZE {
+        let x = Box::new(i);
+        assert_eq!(*x, i);
+    }
+    assert_eq!(*x, 1);
+    serial_println!("[Ok]");
 }
