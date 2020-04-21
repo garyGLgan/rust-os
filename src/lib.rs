@@ -5,6 +5,8 @@
 #![reexport_test_harness_main = "test_main"]
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
+#![feature(const_fn)]
+#![feature(alloc_layout_extra)]
 
 extern crate alloc;
 use bootloader::{entry_point, BootInfo};
