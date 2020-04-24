@@ -9,11 +9,11 @@ use alloc::{boxed::Box, rc::Rc, vec, vec::Vec};
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use ggos::println;
-use ggos::task::{Task, simple_executor::SimpleExecutor};
+use ggos::task::{Task, simple_executor::SimpleExecutor, executor::Executor, keyboard};
 
 entry_point!(kernel_main);
 
-fn kernel_main(boot_info: &'static BootInfo) -> ! {
+fn kernel_main(boot_info: &'static BootInfo) -> ! { 
     use ggos::allocator;
     use ggos::memory;
     use ggos::memory::BoolInfoFrameAllocator;
@@ -51,12 +51,15 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         Rc::strong_count(&cloned_reference)
     );
 
-    let mut executor = SimpleExecutor::new();
+    let mut executor = Executor::new();
     executor.spawn(Task::new(example_task()));
+    executor.spawn(Task::new(keyboard::print_keypresses()));
     executor.run();
 
     #[cfg(test)]
     test_main();
+
+   
 
     println!("It did not crash!");
     ggos::hlt_loop();

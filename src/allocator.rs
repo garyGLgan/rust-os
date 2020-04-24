@@ -9,12 +9,12 @@ use x86_64::{
 };
 
 pub mod bump;
-pub mod linked_list;
 pub mod fixed_size_block;
+pub mod linked_list;
 
 use bump::BumpAllocator;
-use linked_list::LinkedListAllocator;
 use fixed_size_block::FixedSizeBlockAllocator;
+use linked_list::LinkedListAllocator;
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
 pub const HEAP_SIZE: usize = 100 * 1024;
