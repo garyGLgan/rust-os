@@ -28,6 +28,7 @@ lazy_static! {
         idt.page_fault.set_handler_fn(page_fault_handler);
         idt[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
         idt[InterruptIndex::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);
+        idt[(PIC_1_OFFSET+11) as usize].set_handler_fn(network_interrupt_handler);
         idt
     };
 }
@@ -65,7 +66,6 @@ extern "x86-interrupt" fn double_fault_handler(
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: &mut InterruptStackFrame) {
-    print!(".");
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Timer.as_u8());
@@ -84,6 +84,14 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: &mut Interrup
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Keyboard.as_u8());
+    }
+}
+
+extern "x86-interrupt" fn network_interrupt_handler(_stack_frame: &mut InterruptStackFrame) {
+    println!("handle a interrupt from network: {:?}", _stack_frame);
+    unsafe {
+        PICS.lock()
+            .notify_end_of_interrupt((PIC_1_OFFSET+11) as u8);
     }
 }
 
