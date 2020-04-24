@@ -9,6 +9,9 @@
 #![feature(alloc_layout_extra)]
 #![feature(const_in_array_repeat_expressions)]
 
+#[macro_use]
+extern crate num_derive;
+
 extern crate alloc;
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
@@ -19,6 +22,7 @@ pub mod interrupts;
 pub mod memory;
 pub mod serial;
 pub mod vga_buffer;
+pub mod pci;
 
 #[cfg(test)]
 entry_point!(test_kernel_main);
