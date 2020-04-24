@@ -8,6 +8,7 @@
 #![feature(const_fn)]
 #![feature(alloc_layout_extra)]
 #![feature(const_in_array_repeat_expressions)]
+#![feature(wake_trait)]
 
 #[macro_use]
 extern crate num_derive;
@@ -21,6 +22,7 @@ pub mod gdt;
 pub mod interrupts;
 pub mod memory;
 pub mod serial;
+pub mod task;
 pub mod vga_buffer;
 pub mod pci;
 

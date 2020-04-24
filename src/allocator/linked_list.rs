@@ -1,7 +1,7 @@
 use super::align_up;
-use core::mem;
 use super::Locked;
 use alloc::alloc::{GlobalAlloc, Layout};
+use core::mem;
 use core::ptr;
 
 struct ListNode {
@@ -39,7 +39,7 @@ impl LinkedListAllocator {
     }
 
     unsafe fn add_free_region(&mut self, addr: usize, size: usize) {
-        assert!(align_up(addr, mem::align_of::<ListNode>()) == addr );
+        assert!(align_up(addr, mem::align_of::<ListNode>()) == addr);
         assert!(size >= mem::size_of::<ListNode>());
 
         let mut node = ListNode::new(size);
@@ -51,14 +51,14 @@ impl LinkedListAllocator {
 
     fn find_region(&mut self, size: usize, align: usize) -> Option<(&'static mut ListNode, usize)> {
         let mut current = &mut self.head;
-        
+
         while let Some(ref mut region) = current.next {
             if let Ok(alloc_start) = Self::alloc_from_region(&region, size, align) {
                 let next = region.next.take();
                 let ret = Some((current.next.take().unwrap(), alloc_start));
                 current.next = next;
                 return ret;
-            }else {
+            } else {
                 current = current.next.as_mut().unwrap();
             }
         }
@@ -93,10 +93,10 @@ impl LinkedListAllocator {
 
 unsafe impl GlobalAlloc for Locked<LinkedListAllocator> {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        let (size,align) = LinkedListAllocator::size_align(layout);
+        let (size, align) = LinkedListAllocator::size_align(layout);
         let mut allocator = self.lock();
 
-        if let Some((region, alloc_start)) = allocator.find_region(size,align) {
+        if let Some((region, alloc_start)) = allocator.find_region(size, align) {
             let alloc_end = alloc_start.checked_add(size).expect("overflow");
             let excess_size = region.end_addr() - alloc_end;
             if excess_size > 0 {
