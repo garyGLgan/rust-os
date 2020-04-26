@@ -1,11 +1,10 @@
-use x86_64::instructions::port::Port;
-use alloc::{vec::Vec, string::String, format};
-use core::fmt::{Display, Formatter, Error};
-use crate::serial_print;
-use crate::serial_println;
-use crate::print;
+// use crate::print;
 use crate::println;
-
+// use crate::serial_print;
+use crate::serial_println;
+use alloc::{format, string::String, vec::Vec};
+use core::fmt::{Display, Error, Formatter};
+use x86_64::instructions::port::Port;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, FromPrimitive, PartialEq)]
@@ -30,7 +29,9 @@ impl PciClass {
         }
     }
 
-    pub fn as_u8(&self) -> u8 { *self as u8}
+    pub fn as_u8(&self) -> u8 {
+        *self as u8
+    }
 }
 
 #[allow(non_camel_case_types, dead_code)]
@@ -94,14 +95,16 @@ pub enum PciFullClass {
 }
 
 impl PciFullClass {
-    pub fn from_u16(u: u16) -> PciFullClass{
+    pub fn from_u16(u: u16) -> PciFullClass {
         let opt = num::FromPrimitive::from_u16(u);
         match opt {
             Some(e) => e,
             None => PciFullClass::Unknown,
         }
     }
-    pub fn as_u16(&self) -> u16 { *self as u16 }
+    pub fn as_u16(&self) -> u16 {
+        *self as u16
+    }
 }
 
 #[allow(dead_code)]
@@ -129,10 +132,19 @@ impl PciDeviceInfo {
 impl Display for PciDeviceInfo {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let vendor_name = name_for_vendor_id(self.vendor_id);
-        writeln!(f, "Device {:X} | Bus {:X} | Vendor: {}", self.device, self.bus, vendor_name)?;
-        writeln!(f, "    Class: {:?} ({:#06X})", self.full_class, self.full_class.as_u16())?;
+        writeln!(
+            f,
+            "Device {:X} | Bus {:X} | Vendor: {}",
+            self.device, self.bus, vendor_name
+        )?;
+        writeln!(
+            f,
+            "    Class: {:?} ({:#06X})",
+            self.full_class,
+            self.full_class.as_u16()
+        )?;
         writeln!(f, "    Header type: {:X}", self.header_type)?;
-        write!(f,   "    Supported functions: 0")?;
+        write!(f, "    Supported functions: 0")?;
         for (i, b) in self.supported_fns.iter().enumerate().skip(1) {
             if *b {
                 write!(f, ", {}", i)?;
@@ -143,13 +155,16 @@ impl Display for PciDeviceInfo {
         for i in self.bars.iter() {
             if *i == 0 {
                 write!(f, "0x0 ")?;
-            }
-            else {
+            } else {
                 write!(f, "{:#010X} ", i)?;
             }
         }
         writeln!(f, "]")?;
-        writeln!(f, "    Interrupt line / pin: {} / {}", self.interrupt_line, self.interrupt_pin)?;
+        writeln!(
+            f,
+            "    Interrupt line / pin: {} / {}",
+            self.interrupt_line, self.interrupt_pin
+        )?;
         Ok(())
     }
 }
@@ -158,10 +173,9 @@ pub fn name_for_vendor_id(vendor_id: u16) -> String {
     match vendor_id {
         0x8086 => "Intel Corp. (0x8086)".into(),
         0x1234 => "QEMU (0x1234)".into(),
-        _ => format!("Unknown({:#06X})", vendor_id)
+        _ => format!("Unknown({:#06X})", vendor_id),
     }
 }
-
 
 pub fn scan_devices() {
     let mut infos = Vec::new();
@@ -170,20 +184,24 @@ pub fn scan_devices() {
         match i.full_class {
             PciFullClass::MassStorage_IDE => {
                 serial_println!("Found IDE device: bus {} device {}", i.bus, i.device);
-            },
+            }
             PciFullClass::MassStorage_ATA => {
                 serial_println!("Found ATA device: bus {} device {}", i.bus, i.device);
-            },
+            }
             PciFullClass::MassStorage_SATA => {
                 serial_println!("Found SATA device: bus {} device {}", i.bus, i.device);
-            },
+            }
             _ => {
-                serial_println!("Found unsupported PCI device: bus {} device {} class {:?}", i.bus, i.device, i.full_class);
+                serial_println!(
+                    "Found unsupported PCI device: bus {} device {} class {:?}",
+                    i.bus,
+                    i.device,
+                    i.full_class
+                );
             }
         }
     }
 }
-
 
 fn brute_force_scan(infos: &mut Vec<PciDeviceInfo>) {
     for bus in 0u8..=255 {
@@ -234,7 +252,10 @@ fn check_device(bus: u8, device: u8) -> Option<PciDeviceInfo> {
     let last_row = pci_config_read(bus, device, 0, 0x3C);
 
     Some(PciDeviceInfo {
-        device, bus, device_id, vendor_id,
+        device,
+        bus,
+        device_id,
+        vendor_id,
         full_class: pci_class,
         header_type,
         bars,
@@ -250,11 +271,14 @@ fn pci_config_read(bus: u8, device: u8, func: u8, offset: u8) -> u32 {
     let func = func as u32;
     let offset = offset as u32;
     // construct address param
-    let address = ((bus << 16) | (device << 11) | (func << 8) | (offset & 0xfc) | 0x80000000) as u32;
+    let address =
+        ((bus << 16) | (device << 11) | (func << 8) | (offset & 0xfc) | 0x80000000) as u32;
 
     // write address
     let mut port = Port::new(0xCF8);
-    unsafe { port.write(address); }
+    unsafe {
+        port.write(address);
+    }
 
     // read data
     let mut port = Port::new(0xCFC);
@@ -268,11 +292,14 @@ fn pci_config_write(bus: u8, device: u8, func: u8, offset: u8, value: u32) {
     let func = func as u32;
     let offset = offset as u32;
     // construct address param
-    let address = ((bus << 16) | (device << 11) | (func << 8) | (offset & 0xfc) | 0x80000000) as u32;
+    let address =
+        ((bus << 16) | (device << 11) | (func << 8) | (offset & 0xfc) | 0x80000000) as u32;
 
     // write address
     let mut port = Port::new(0xCF8);
-    unsafe { port.write(address); }
+    unsafe {
+        port.write(address);
+    }
 
     // read data
     let mut port = Port::new(0xCFC);
