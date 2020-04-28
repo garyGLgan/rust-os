@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Gary Gan <garyglgan@gmail.com>"]
 edition = "2018"
 
+[lib]
+carte-type=["staticlib"]
+
 [dependencies]
 bootloader = { version = "0.8.0", features = ["map_physical_memory"] }
 volatile = "0.2.6"
